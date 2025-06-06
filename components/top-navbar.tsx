@@ -1,27 +1,36 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState } from 'react';
+
 import {
   BarChart3,
-  ClipboardCheck,
-  Home,
-  PlusCircle,
-  Settings,
-  LogOut,
-  Users,
-  FileText,
-  LayoutTemplate,
-  Menu,
-  X,
   Bell,
-  Search,
+  ClipboardCheck,
+  FileText,
   HelpCircle,
-} from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+  Home,
+  LayoutTemplate,
+  LogOut,
+  Menu,
+  PlusCircle,
+  Search,
+  Settings,
+  Users,
+  X,
+} from 'lucide-react';
+import Link from 'next/link';
+import {
+  usePathname,
+  useRouter,
+} from 'next/navigation';
+
+import HelpVideoModal from '@/components/help-video-modal';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,18 +38,39 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import HelpVideoModal from "@/components/help-video-modal"
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+
+interface UserProfile {
+  name: string;
+}
 
 export default function TopNavbar() {
-  const pathname = usePathname()
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [showSearch, setShowSearch] = useState(false)
-  const [showHelpModal, setShowHelpModal] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // Ensures we only call localStorage.getItem in the browser (not during SSR).
+  const [user, setUser] = useState<UserProfile>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      try {
+        return stored ? (JSON.parse(stored) as UserProfile) : { name: "" };
+      } catch {
+        return { name: "" };
+      }
+    }
+    return { name: "" };
+  });
 
   // Don't show navbar on login page
   if (pathname === "/login") {
-    return null
+    return null;
   }
 
   const navItems = [
@@ -51,7 +81,21 @@ export default function TopNavbar() {
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/respondents", label: "Respondents", icon: Users },
     { href: "/settings", label: "Settings", icon: Settings },
-  ]
+  ];
+
+  const handleLogout = () => {
+    // Clear tokens/user data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser({ name: "" });
+
+    toast({
+      title: "Logged out",
+      description: "You have been signed out.",
+    });
+
+    router.push("/login");
+  };
 
   return (
     <>
@@ -59,7 +103,10 @@ export default function TopNavbar() {
         <div className="container flex h-16 items-center">
           <div className="flex items-center gap-2 mr-4">
             <ClipboardCheck className="h-6 w-6" />
-            <Link href="/" className="font-bold text-xl hidden md:inline-block text-foreground">
+            <Link
+              href="/"
+              className="font-bold text-xl hidden md:inline-block text-foreground"
+            >
               SurveyPro
             </Link>
           </div>
@@ -69,7 +116,7 @@ export default function TopNavbar() {
             variant="ghost"
             size="icon"
             className="md:hidden mr-2"
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            onClick={() => setShowMobileMenu((prev) => !prev)}
           >
             {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             <span className="sr-only">Toggle menu</span>
@@ -78,7 +125,7 @@ export default function TopNavbar() {
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-1 flex-1">
             {navItems.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -93,7 +140,7 @@ export default function TopNavbar() {
                   <Icon className="h-4 w-4 mr-2" />
                   {item.label}
                 </Link>
-              )
+              );
             })}
           </nav>
 
@@ -102,7 +149,7 @@ export default function TopNavbar() {
             <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden z-50">
               <nav className="flex flex-col p-4 space-y-2">
                 {navItems.map((item) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
@@ -118,7 +165,7 @@ export default function TopNavbar() {
                       <Icon className="h-4 w-4 mr-2" />
                       {item.label}
                     </Link>
-                  )
+                  );
                 })}
               </nav>
             </div>
@@ -138,13 +185,23 @@ export default function TopNavbar() {
                 />
               </div>
             ) : (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowSearch(true)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowSearch(true)}
+              >
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Search</span>
               </Button>
             )}
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowHelpModal(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setShowHelpModal(true)}
+            >
               <HelpCircle className="h-4 w-4" />
               <span className="sr-only">Help</span>
             </Button>
@@ -162,8 +219,12 @@ export default function TopNavbar() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>New response to "Customer Satisfaction Survey"</DropdownMenuItem>
-                <DropdownMenuItem>Survey "Product Feedback" is trending</DropdownMenuItem>
+                <DropdownMenuItem>
+                  New response to "Customer Satisfaction Survey"
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Survey "Product Feedback" is trending
+                </DropdownMenuItem>
                 <DropdownMenuItem>Weekly report is available</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -173,19 +234,19 @@ export default function TopNavbar() {
                 <Button variant="ghost" className="h-8 gap-2 pl-2">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src="/placeholder-user.jpg" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>SP</AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline-block">John Doe</span>
+                  <span className="hidden md:inline-block">{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -197,5 +258,5 @@ export default function TopNavbar() {
 
       <HelpVideoModal open={showHelpModal} onOpenChange={setShowHelpModal} />
     </>
-  )
+  );
 }
