@@ -12,5 +12,5 @@ return User.findOne({email});
 
 
 export const findUserById=async(id)=>{
-return await User.findById(id);
+return await User.findById(id).select("-password");
 }

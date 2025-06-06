@@ -8,7 +8,7 @@ export function generateToken(payload, options = {}) {
 
   // Default token options (you can override via `options`)
   const signOptions = {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d', // e.g. '7d', '1h', etc.
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h', // e.g. '7d', '1h', etc.
     ...options,
   };
 

@@ -1,6 +1,8 @@
 'use client';
 import React, { ReactNode } from 'react';
 
+import { ToastContainer } from 'react-toastify';
+
 import HelpButton from '@/components/help-button';
 import { ThemeProvider } from '@/components/theme-provider';
 import TopNavbar from '@/components/top-navbar';
@@ -17,6 +19,7 @@ const LayoutWrapper:React.FC<LayoutWrapperProps> = ({children}) => {
             <main className="flex-1 flex flex-col">{children}</main>
             <HelpButton />
           </div>
+          <ToastContainer />
         </ThemeProvider>
   )
 }
